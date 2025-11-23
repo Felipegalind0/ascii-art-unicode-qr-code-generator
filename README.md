@@ -1,20 +1,52 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# ASCII QR Forge
 
-# Run and deploy your AI Studio app
+A retro-futuristic tool to generate scannable ASCII art QR codes.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/1wkJeVlhI50Z_O8E2vKnP__5izn4FFB5C
+- **Block Mode**: Uses Unicode block elements (█, ▀, ▄) for high-fidelity scanning.
+- **Text Mode**: Uses standard ASCII characters (e.g., #, @) for a classic look.
+- **Customization**: Adjust error correction levels, colors, and invert logic.
+- **Privacy**: runs entirely in your browser. No data is sent to any server.
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+## Installation
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+
+2. Start local development server:
+   ```bash
+   npm run dev
+   ```
+
+## Deployment to GitHub Pages
+
+This project is configured to automatically deploy to GitHub Pages using the `gh-pages` branch.
+
+1. **Configure Git**:
+   Ensure your project is initialized as a git repo and connected to GitHub.
+   ```bash
+   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+   ```
+
+2. **Deploy**:
+   Run the deploy script. This handles building the app and pushing the `dist` folder to the `gh-pages` branch for you.
+   ```bash
+   npm run deploy
+   ```
+
+3. **Activate in GitHub**:
+   - Go to your repository **Settings**.
+   - Click **Pages** in the sidebar.
+   - Under **Build and deployment** > **Branch**, select `gh-pages`.
+   - Click **Save**.
+
+## Technologies
+
+- React
+- TypeScript
+- Vite
+- TailwindCSS
+- QRCode (node-qrcode)

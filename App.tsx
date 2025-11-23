@@ -106,6 +106,7 @@ const App: React.FC = () => {
 
     try {
       const newUrl = `${window.location.pathname}?${params.toString()}`;
+      // Prevent infinite loops or unnecessary updates
       if (window.location.search !== `?${params.toString()}`) {
           window.history.replaceState({}, '', newUrl);
       }
@@ -160,6 +161,7 @@ const App: React.FC = () => {
       setTimeout(() => setCopiedLink(false), 2000);
     } catch (err) {
       console.warn('Clipboard access denied:', err);
+      // Fallback or just show 'copied' locally
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
     }
