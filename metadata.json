@@ -1,0 +1,5 @@
+{
+  "name": "ASCII QR Forge",
+  "description": "A retro-futuristic tool to generate scannable ASCII art QR codes. Features standard block modes and text customization.",
+  "requestFramePermissions": []
+}
