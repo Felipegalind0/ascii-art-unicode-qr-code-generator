@@ -6,11 +6,25 @@ import { getQRMatrix, toAsciiText, toAsciiBlocks } from './utils/qrLogic';
 import { Terminal, QrCode, Share2, Check } from 'lucide-react';
 
 const App: React.FC = () => {
+  // Check system preference for initial colors
+  const systemPrefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  const DEFAULT_DARK_FG = '#4ade80'; // Green-400
+  const DEFAULT_DARK_BG = '#000000';
+  const DEFAULT_LIGHT_FG = '#000000';
+  const DEFAULT_LIGHT_BG = '#ffffff';
+
   // Helper to parse URL params
   const getInitialState = useCallback(() => {
-    // In some sandboxed environments, accessing window.location might throw
     try {
       const params = new URLSearchParams(window.location.search);
+      // Determine initial colors based on URL or System Pref
+      const urlFg = params.get('fg');
+      const urlBg = params.get('bg');
+      
+      const defaultFg = systemPrefersDark ? DEFAULT_DARK_FG : DEFAULT_LIGHT_FG;
+      const defaultBg = systemPrefersDark ? DEFAULT_DARK_BG : DEFAULT_LIGHT_BG;
+
       return {
         text: params.get('text') || 'https://example.com',
         mode: (params.get('mode') as QRMode) || QRMode.BLOCK,
@@ -20,19 +34,22 @@ const App: React.FC = () => {
           name: params.get('themeName') || 'Classic',
           darkChar: params.get('darkChar') || '#',
           lightChar: params.get('lightChar') || '.',
-        }
+        },
+        fgColor: urlFg || defaultFg,
+        bgColor: urlBg || defaultBg
       };
     } catch (e) {
-      // Fallback defaults if location is inaccessible
       return {
         text: 'https://example.com',
         mode: QRMode.BLOCK,
         ecLevel: ErrorCorrectionLevel.L,
         invert: false,
-        theme: { name: 'Classic', darkChar: '#', lightChar: '.' }
+        theme: { name: 'Classic', darkChar: '#', lightChar: '.' },
+        fgColor: systemPrefersDark ? DEFAULT_DARK_FG : DEFAULT_LIGHT_FG,
+        bgColor: systemPrefersDark ? DEFAULT_DARK_BG : DEFAULT_LIGHT_BG
       };
     }
-  }, []);
+  }, [systemPrefersDark]);
 
   const initialState = getInitialState();
 
@@ -43,9 +60,19 @@ const App: React.FC = () => {
   const [ecLevel, setEcLevel] = useState<ErrorCorrectionLevel>(initialState.ecLevel);
   const [invert, setInvert] = useState<boolean>(initialState.invert);
   
+  // Color State
+  const [fgColor, setFgColor] = useState<string>(initialState.fgColor);
+  const [bgColor, setBgColor] = useState<string>(initialState.bgColor);
+  
   const [ascii, setAscii] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+
+  const resetToSystemTheme = () => {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setFgColor(isDark ? DEFAULT_DARK_FG : DEFAULT_LIGHT_FG);
+    setBgColor(isDark ? DEFAULT_DARK_BG : DEFAULT_LIGHT_BG);
+  };
 
   // Handle Browser Back/Forward buttons
   useEffect(() => {
@@ -56,6 +83,8 @@ const App: React.FC = () => {
       setEcLevel(s.ecLevel);
       setInvert(s.invert);
       setTheme(s.theme);
+      setFgColor(s.fgColor);
+      setBgColor(s.bgColor);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -72,20 +101,18 @@ const App: React.FC = () => {
     params.set('themeName', theme.name);
     params.set('darkChar', theme.darkChar);
     params.set('lightChar', theme.lightChar);
+    params.set('fg', fgColor);
+    params.set('bg', bgColor);
 
     try {
       const newUrl = `${window.location.pathname}?${params.toString()}`;
-      // Only push state if it's different from current
       if (window.location.search !== `?${params.toString()}`) {
-          // Use replaceState to prevent "The operation is insecure" in some strict sandboxes
-          // and to avoid spamming the history stack with every character type.
           window.history.replaceState({}, '', newUrl);
       }
     } catch (err) {
-      // Silently fail in environments where history API is restricted (e.g. sandboxed iframes)
       console.debug('History API unavailable:', err);
     }
-  }, [text, mode, ecLevel, invert, theme]);
+  }, [text, mode, ecLevel, invert, theme, fgColor, bgColor]);
 
   // QR Generation Effect
   useEffect(() => {
@@ -98,9 +125,7 @@ const App: React.FC = () => {
       }
       setLoading(true);
       try {
-        // Add a tiny delay to allow UI to show loading state for heavy operations
         await new Promise(r => setTimeout(r, 50)); 
-        
         const matrix = await getQRMatrix(text, ecLevel);
         
         if (!active) return;
@@ -135,14 +160,13 @@ const App: React.FC = () => {
       setTimeout(() => setCopiedLink(false), 2000);
     } catch (err) {
       console.warn('Clipboard access denied:', err);
-      // Fallback or just ignore if clipboard is blocked
-      setCopiedLink(true); // Pretend it worked for UI feedback if it's just a permissions issue
+      setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-black">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-black transition-colors duration-500">
       
       {/* Title */}
       <header className="mb-8 text-center space-y-2 relative w-full max-w-2xl">
@@ -160,7 +184,7 @@ const App: React.FC = () => {
           <QrCode size={40} className="text-blue-500" />
         </h1>
         <p className="text-gray-400 text-sm md:text-base font-mono">
-          Generate scannable QR codes in raw ASCII or Unicode Block formats. 
+          Generate scannable ASCII art QR codes.
         </p>
       </header>
 
@@ -180,12 +204,22 @@ const App: React.FC = () => {
             setEcLevel={setEcLevel}
             invert={invert}
             setInvert={setInvert}
+            fgColor={fgColor}
+            setFgColor={setFgColor}
+            bgColor={bgColor}
+            setBgColor={setBgColor}
+            resetToSystemTheme={resetToSystemTheme}
           />
         </section>
 
         {/* Right: Output */}
         <section className="lg:col-span-8 h-full order-1 lg:order-2 flex flex-col space-y-4">
-           <AsciiOutput ascii={ascii} loading={loading} />
+           <AsciiOutput 
+             ascii={ascii} 
+             loading={loading} 
+             fgColor={fgColor}
+             bgColor={bgColor}
+           />
         </section>
 
       </main>

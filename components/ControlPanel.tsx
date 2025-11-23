@@ -1,6 +1,6 @@
 import React from 'react';
 import { QRMode, ErrorCorrectionLevel, AsciiTheme } from '../types';
-import { Settings2 } from 'lucide-react';
+import { Settings2, Palette, Monitor } from 'lucide-react';
 
 interface ControlPanelProps {
   text: string;
@@ -13,6 +13,12 @@ interface ControlPanelProps {
   setEcLevel: (l: ErrorCorrectionLevel) => void;
   invert: boolean;
   setInvert: (b: boolean) => void;
+  // Color Props
+  fgColor: string;
+  setFgColor: (c: string) => void;
+  bgColor: string;
+  setBgColor: (c: string) => void;
+  resetToSystemTheme: () => void;
 }
 
 const PRESET_THEMES: AsciiTheme[] = [
@@ -34,6 +40,11 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   setEcLevel,
   invert,
   setInvert,
+  fgColor,
+  setFgColor,
+  bgColor,
+  setBgColor,
+  resetToSystemTheme,
 }) => {
 
   return (
@@ -126,19 +137,61 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
 
             <div>
-               <label className="text-xs text-gray-400 block mb-1">Invert Colors</label>
+               <label className="text-xs text-gray-400 block mb-1">Modules</label>
                <button 
                  onClick={() => setInvert(!invert)}
                  className={`w-full h-[34px] rounded border transition-colors flex items-center justify-center gap-2 text-xs font-mono ${invert ? 'bg-white text-black border-white' : 'bg-black text-white border-gray-700'}`}
                >
-                  {invert ? 'Dark on Light' : 'Light on Dark'}
+                  {invert ? 'Inverted' : 'Standard'}
                </button>
             </div>
         </div>
       </div>
+
+      {/* Appearance Section */}
+      <div className="space-y-2 pt-4 border-t border-gray-800">
+        <label className="text-xs uppercase tracking-wider text-gray-400 font-semibold flex items-center gap-2">
+          <Palette size={14} /> Appearance
+        </label>
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+             <label className="text-[10px] text-gray-500 block mb-1">Primary Color</label>
+             <div className="flex items-center gap-2">
+                <input 
+                  type="color" 
+                  value={fgColor}
+                  onChange={(e) => setFgColor(e.target.value)}
+                  className="w-8 h-8 rounded cursor-pointer bg-transparent border-none p-0" 
+                />
+                <span className="text-xs text-gray-400 font-mono">{fgColor}</span>
+             </div>
+          </div>
+          <div className="flex-1">
+             <label className="text-[10px] text-gray-500 block mb-1">Background</label>
+             <div className="flex items-center gap-2">
+                <input 
+                  type="color" 
+                  value={bgColor}
+                  onChange={(e) => setBgColor(e.target.value)}
+                  className="w-8 h-8 rounded cursor-pointer bg-transparent border-none p-0" 
+                />
+                <span className="text-xs text-gray-400 font-mono">{bgColor}</span>
+             </div>
+          </div>
+          <div className="flex items-end">
+             <button 
+               onClick={resetToSystemTheme}
+               className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded transition-colors"
+               title="Reset to System Theme"
+             >
+                <Monitor size={16} />
+             </button>
+          </div>
+        </div>
+      </div>
       
       <div className="mt-auto pt-6 text-[10px] text-gray-600 font-mono text-center">
-         ASCII QR FORGE v1.1.0
+         ASCII QR FORGE v1.2.0
       </div>
 
     </div>
